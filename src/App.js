@@ -1,26 +1,46 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useMemo } from "react";
 // import Counter from "./components/Counter";
 import "./styles/App.css";
 import PostList from "./components/PostList";
+import PostForm from "./components/PostForm";
+import PostFilter from "./components/PostFilter";
+import MyModal from "./components/UI/modal/MyModal";
 import MyButton from "./components/UI/button/MyButton";
-import MyInput from "./components/UI/input/MyInput";
 
 function App() {
   // const [value, setValue] = useState("text");
   const [posts, setPosts] = useState([
-    { id: 1, title: "JS", body: "Description" },
-    { id: 2, title: "JS 1", body: "Description" },
-    { id: 3, title: "JS 2", body: "Description" },
+    { id: 1, title: "Angular", body: "Aescription" },
+    { id: 2, title: "Vue", body: "Bescription" },
+    { id: 3, title: "React", body: "Cescription" },
   ]);
 
-  const [post, setPost] = useState({ title: "", body: "" });
+  const [filter, setFilter] = useState({ sort: "", query: "" });
 
-  const addNewPost = (e) => {
-    e.preventDefault();
+  const [modal, setModal] = useState(false);
 
-    setPosts([...posts, { ...post, id: Date.now() }]);
-    setPost({ title: "", body: "" });
-    // console.log(bodyInputRef.current.value)
+  const sortedPosts = useMemo(() => {
+    if (filter.sort) {
+      return [...posts].sort((a, b) =>
+        a[filter.sort].localeCompare(b[filter.sort])
+      );
+    }
+    return posts;
+  }, [filter.sort, posts]);
+
+  const sortedAndSearchedPosts = useMemo(() => {
+    return sortedPosts.filter((post) =>
+      post.title.toLowerCase().includes(filter.query.toLowerCase())
+    );
+  }, [filter.query, sortedPosts]);
+
+  const createPost = (newPost) => {
+    setPosts([...posts, newPost]);
+    setModal(false);
+  };
+
+  const removePost = (post) => {
+    setPosts(posts.filter((p) => p.id !== post.id));
   };
 
   // const bodyInputRef = useRef();
@@ -28,38 +48,26 @@ function App() {
   return (
     <div className="App">
       {/* <Counter /> */}
-      <form>
-        {/* Управляемий компонент */}
-        <MyInput
-          value={post.title}
-          onChange={(e) => setPost({ ...post, title: e.target.value })}
-          type="text"
-          placeholder="Title post"
-        />
+      <MyButton style={{ marginTop: 30 }} onClick={() => setModal(true)}>
+        Create Post
+      </MyButton>
+      <MyModal visible={modal} setVisible={setModal}>
+        <PostForm create={createPost} />
+      </MyModal>
 
-        <MyInput
-          value={post.body}
-          onChange={(e) => setPost({ ...post, body: e.target.value })}
-          type="text"
-          placeholder="Description post"
-        />
+      <hr style={{ margin: "15px 0" }} />
 
-        {/* Неуправляемий компонент
-        <MyInput
-          ref={bodyInputRef}
-          type="text"
-          placeholder="Description post"
-        /> */}
+      <PostFilter filter={filter} setFilter={setFilter} />
 
-        <MyButton type="button" onClick={addNewPost}>
-          Create post
-        </MyButton>
-      </form>
-      <PostList posts={posts} title="Posts about JS" />
+      <PostList
+        remove={removePost}
+        posts={sortedAndSearchedPosts}
+        title="Posts about JS"
+      />
     </div>
   );
 }
 
 export default App;
 
-// через useRef ми можемо напряму получати домтуп до ДОМ елементів
+// через useRef ми можемо напряму получати домтуп до ДОМ елементів, приклад використання див PostForm
