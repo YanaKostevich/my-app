@@ -15,7 +15,6 @@ const SimplePost = () => {
   useEffect(() => {
     fetchPostById(params.id);
   }, []);
-  
 
   return (
     <div>
